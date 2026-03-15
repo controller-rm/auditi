@@ -1216,7 +1216,6 @@ def main():
         use_container_width=True,
     )
     ###############################################################################################################
-    import plotly.express as px
 
     df_meta_grafico = meta.get_meta_vendedor_grafico()
 
@@ -1270,7 +1269,7 @@ def main():
         st.info("Sem dados de faturamento por vendedor para o período.")
     ####################################################################################################################
     # Grafico Meta x Realizado por mês
-    import plotly.express as px
+  
 
     df_meta_matriz = metaatingida.get_tabela_meta_matriz()
 
