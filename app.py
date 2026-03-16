@@ -6,6 +6,7 @@ from typing import Optional, List
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import time
 
 def main():
     import streamlit as st
@@ -764,33 +765,167 @@ def main():
         )
 
         return diagnosticos, geral
+    # =========================================================
+    # STATUS DE CARREGAMENTO
+    # =========================================================
+    loading_box = st.empty()
+    loading_text = st.empty()
+    loading_progress = st.progress(0)
 
+    inicio_execucao = time.perf_counter()
+
+    loading_box.markdown(
+        """
+        <div style="
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-left: 6px solid #2563eb;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 18px;
+        ">
+            <div style="font-size: 1.05rem; font-weight: 700; color: #1e293b;">
+                ⏳ Aguarde, estamos processando as informações...
+            </div>
+            <div style="font-size: 0.92rem; color: #475569; margin-top: 6px;">
+                O painel está consultando os dados e montando os indicadores.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    def atualizar_loading(etapa: str, atual: int, total: int):
+        tempo_decorrido = time.perf_counter() - inicio_execucao
+        loading_text.markdown(
+            f"""
+            <div style="margin-bottom: 8px; color: #334155; font-size: 0.95rem;">
+                <b>{etapa}</b><br>
+                Tempo decorrido: <b>{tempo_decorrido:,.1f} s</b>
+            </div>
+            """.replace(",", "X").replace(".", ",").replace("X", "."),
+            unsafe_allow_html=True,
+        )
+        loading_progress.progress(min(int((atual / total) * 100), 100))
 
     # =========================================================
     # KPIs
     # =========================================================
+    total_etapas = 22
+    etapa = 0
+    etapas_kpi = [
+        ("Carregando faturamento...", faturamento.get_kpi),
+        ("Carregando pedidos...", pedidos.get_kpi),
+        ("Carregando financeiro...", financeiro.get_kpi),
+        ("Carregando estoque...", estoque.get_kpi),
+        ("Carregando compras pendentes...", compras_pendentes.get_kpi),
+        ("Carregando pedidos do mês...", pedidos_mes.get_kpi),
+        ("Calculando prazo médio de entrega...", pedidos_mes.get_kpi_prazo_medio_entrega),
+        ("Carregando OF dispersão...", OF_dispersao.get_kpi),
+        ("Carregando CQ liberação...", cq_liberacao.get_kpi),
+        ("Carregando produção...", ordem_fabric.get_kpi),
+        ("Carregando OFs atrasadas...", ordem_fabric.get_kpi_of_atrasadas),
+        ("Carregando correções...", correcoes.get_kpi),
+        ("Carregando OFs abertas 997...", ordem_fabric.get_kpi_of_abertas_997),
+        ("Carregando margem...", margem.get_kpi),
+        ("Carregando contas a receber...", areceber.get_kpi),
+        ("Carregando avarias de estoque...", estoque.get_kpi_avarias),
+        ("Carregando entradas...", entradas.get_kpi),
+        ("Carregando itens críticos...", itemcritico.get_kpi),
+        ("Carregando estrutura...", estrutura.get_kpi),
+        ("Carregando reposição x médio...", reposicaoxmedio.get_kpi),
+        ("Carregando metas...", meta.get_kpi),
+        ("Carregando meta atingida...", metaatingida.get_kpi),
+    ]
+
+    total_etapas = len(etapas_kpi)
     kpi_faturamento = faturamento.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando faturamento...", etapa, total_etapas)
+
     kpi_pedidos = pedidos.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando pedidos...", etapa, total_etapas)
+
     kpi_financeiro = financeiro.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando financeiro...", etapa, total_etapas)
+
     kpi_estoque = estoque.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando estoque...", etapa, total_etapas)
+
     kpi_compras_pendentes = compras_pendentes.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando compras pendentes...", etapa, total_etapas)
+
     kpi_pedidos_mes = pedidos_mes.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando pedidos do mês...", etapa, total_etapas)
+
     kpi_prazo_entrega = pedidos_mes.get_kpi_prazo_medio_entrega()
+    etapa += 1
+    atualizar_loading("Calculando prazo médio de entrega...", etapa, total_etapas)
+
     kpi_of_dispersao = OF_dispersao.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando OF dispersão...", etapa, total_etapas)
+
     kpi_cq_liberacao = cq_liberacao.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando CQ liberação...", etapa, total_etapas)
+
     kpi_producao = ordem_fabric.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando produção...", etapa, total_etapas)
+
     kpi_of_atrasadas = ordem_fabric.get_kpi_of_atrasadas()
+    etapa += 1
+    atualizar_loading("Carregando OFs atrasadas...", etapa, total_etapas)
+
     kpi_correcoes = correcoes.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando correções...", etapa, total_etapas)
+
     kpi_of_abertas_997 = ordem_fabric.get_kpi_of_abertas_997()
+    etapa += 1
+    atualizar_loading("Carregando OFs abertas 997...", etapa, total_etapas)
+
     kpi_margem = margem.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando margem...", etapa, total_etapas)
+
     kpi_areceber = areceber.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando contas a receber...", etapa, total_etapas)
+
     kpi_estoque_avaria = estoque.get_kpi_avarias()
+    etapa += 1
+    atualizar_loading("Carregando avarias de estoque...", etapa, total_etapas)
+
     kpi_entradas = entradas.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando entradas...", etapa, total_etapas)
+
     kpi_itemcritico = itemcritico.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando itens críticos...", etapa, total_etapas)
+
     kpi_estrutura = estrutura.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando estrutura...", etapa, total_etapas)
+
     kpi_reposicao = reposicaoxmedio.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando reposição x médio...", etapa, total_etapas)
+
     kpi_meta = meta.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando metas...", etapa, total_etapas)
+
     kpi_metaatingida = metaatingida.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando meta atingida...", etapa, total_etapas)
     # =========================================================
     # ORGANIZAÇÃO POR SETOR
     # =========================================================
@@ -1012,7 +1147,31 @@ def main():
             ),
         ],
     }
+    tempo_total = time.perf_counter() - inicio_execucao
 
+    loading_box.markdown(
+        f"""
+        <div style="
+            background: #ecfdf5;
+            border: 1px solid #bbf7d0;
+            border-left: 6px solid #16a34a;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 18px;
+        ">
+            <div style="font-size: 1.05rem; font-weight: 700; color: #166534;">
+                ✅ Informações processadas com sucesso
+            </div>
+            <div style="font-size: 0.92rem; color: #166534; margin-top: 6px;">
+                Tempo total de carregamento: <b>{tempo_total:,.1f} s</b>
+            </div>
+        </div>
+        """.replace(",", "X").replace(".", ",").replace("X", "."),
+        unsafe_allow_html=True,
+    )
+
+    loading_text.empty()
+    loading_progress.empty()
     # =========================================================
     # BASES AUXILIARES
     # =========================================================
