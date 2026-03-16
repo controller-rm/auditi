@@ -8,9 +8,25 @@ import plotly.express as px
 import plotly.graph_objects as go
 import time
 
-def main():
+def main(status_placeholder):
     import streamlit as st
 
+    def render_status_topo(mensagem: str, tempo: float = 0.0, concluido: bool = False):
+        classe = "status-topo-ok" if concluido else "status-topo"
+        titulo = "✅ Informações processadas" if concluido else "⏳ Aguarde, estamos processando as informações..."
+
+        status_placeholder.markdown(
+            f"""
+            <div class="{classe}">
+                <div class="status-topo-titulo">{titulo}</div>
+                <div class="status-topo-texto">
+                    {mensagem}<br>
+                    Tempo decorrido: <b>{tempo:.1f} s</b>
+                </div>
+            </div>
+            """.replace(".", ","),
+            unsafe_allow_html=True,
+        )
     if not st.session_state.get("authenticated", False):
         st.error("Acesso não autorizado. Faça login primeiro.")
         st.stop()
@@ -768,46 +784,13 @@ def main():
     # =========================================================
     # STATUS DE CARREGAMENTO
     # =========================================================
-    loading_box = st.empty()
-    loading_text = st.empty()
-    loading_progress = st.progress(0)
-
     inicio_execucao = time.perf_counter()
-
-    loading_box.markdown(
-        """
-        <div style="
-            background: #f8fafc;
-            border: 1px solid #cbd5e1;
-            border-left: 6px solid #2563eb;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 18px;
-        ">
-            <div style="font-size: 1.05rem; font-weight: 700; color: #1e293b;">
-                ⏳ Aguarde, estamos processando as informações...
-            </div>
-            <div style="font-size: 0.92rem; color: #475569; margin-top: 6px;">
-                O painel está consultando os dados e montando os indicadores.
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    render_status_topo("Iniciando carregamento do painel...", 0.0, False)
 
     def atualizar_loading(etapa: str, atual: int, total: int):
         tempo_decorrido = time.perf_counter() - inicio_execucao
-        loading_text.markdown(
-            f"""
-            <div style="margin-bottom: 8px; color: #334155; font-size: 0.95rem;">
-                <b>{etapa}</b><br>
-                Tempo decorrido: <b>{tempo_decorrido:,.1f} s</b>
-            </div>
-            """.replace(",", "X").replace(".", ",").replace("X", "."),
-            unsafe_allow_html=True,
-        )
-        loading_progress.progress(min(int((atual / total) * 100), 100))
-
+        percentual = min(int((atual / total) * 100), 100)
+        render_status_topo(f"{etapa} ({percentual}%)", tempo_decorrido, False)
     # =========================================================
     # KPIs
     # =========================================================
@@ -1148,30 +1131,10 @@ def main():
         ],
     }
     tempo_total = time.perf_counter() - inicio_execucao
-
-    loading_box.markdown(
-        f"""
-        <div style="
-            background: #ecfdf5;
-            border: 1px solid #bbf7d0;
-            border-left: 6px solid #16a34a;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 18px;
-        ">
-            <div style="font-size: 1.05rem; font-weight: 700; color: #166534;">
-                ✅ Informações processadas com sucesso
-            </div>
-            <div style="font-size: 0.92rem; color: #166534; margin-top: 6px;">
-                Tempo total de carregamento: <b>{tempo_total:,.1f} s</b>
-            </div>
-        </div>
-        """.replace(",", "X").replace(".", ",").replace("X", "."),
-        unsafe_allow_html=True,
-    )
-
-    loading_text.empty()
-    loading_progress.empty()
+    render_status_topo("Painel carregado com sucesso.", tempo_total, True)
+    st.session_state["loading_message"] = "Painel carregado com sucesso."
+    st.session_state["loading_elapsed"] = tempo_total
+    st.session_state["loading_done"] = True
     # =========================================================
     # BASES AUXILIARES
     # =========================================================
@@ -1465,4 +1428,6 @@ def main():
             )
 
     st.dataframe(pd.DataFrame(linhas), use_container_width=True, hide_index=True)
+
+
 
