@@ -1,6 +1,5 @@
 import os
 import mysql.connector
-import streamlit as st
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,7 +11,6 @@ MYSQL_USER = os.getenv("MYSQL_USER")
 MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD")
 
 
-@st.cache_resource
 def get_connection():
     return mysql.connector.connect(
         host=MYSQL_HOST,
