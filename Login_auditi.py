@@ -48,6 +48,51 @@ st.markdown(
             box-shadow: 0 8px 22px rgba(0,0,0,0.06);
             background: white;
         }
+
+        .status-topo {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-left: 5px solid #2563eb;
+            border-radius: 10px;
+            padding: 10px 14px;
+            min-height: 66px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .status-topo-ok {
+            background: #ecfdf5;
+            border: 1px solid #bbf7d0;
+            border-left: 5px solid #16a34a;
+            border-radius: 10px;
+            padding: 10px 14px;
+            min-height: 66px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .status-topo-titulo {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .status-topo-ok .status-topo-titulo {
+            color: #166534;
+        }
+
+        .status-topo-texto {
+            font-size: 0.85rem;
+            color: #475569;
+            line-height: 1.35;
+        }
+
+        .status-topo-ok .status-topo-texto {
+            color: #166534;
+        }
     </style>
     """,
     unsafe_allow_html=True,
@@ -85,6 +130,11 @@ st.session_state.setdefault("username", "")
 st.session_state.setdefault("lk_grupo", "")
 st.session_state.setdefault("stage", "login")  # login | welcome | app
 
+# status do carregamento no topo
+st.session_state.setdefault("loading_message", "")
+st.session_state.setdefault("loading_elapsed", 0.0)
+st.session_state.setdefault("loading_done", False)
+
 # =========================================================
 # AUTH (CSV)
 # =========================================================
@@ -121,6 +171,9 @@ def logout() -> None:
     st.session_state["username"] = ""
     st.session_state["lk_grupo"] = ""
     st.session_state["stage"] = "login"
+    st.session_state["loading_message"] = ""
+    st.session_state["loading_elapsed"] = 0.0
+    st.session_state["loading_done"] = False
     st.rerun()
 
 
@@ -161,6 +214,9 @@ def login_page() -> None:
                     st.session_state["username"] = username
                     st.session_state["lk_grupo"] = lk_grupo
                     st.session_state["stage"] = "welcome"
+                    st.session_state["loading_message"] = ""
+                    st.session_state["loading_elapsed"] = 0.0
+                    st.session_state["loading_done"] = False
                     st.rerun()
                 else:
                     st.error("Login falhou. Verifique Empresa/Usuário/Senha.")
@@ -169,8 +225,8 @@ def login_page() -> None:
 # =========================================================
 # HEADER DO APP LOGADO
 # =========================================================
-def header_bar() -> None:
-    c1, c2, c3 = st.columns([7, 7, 2], vertical_alignment="center")
+def header_bar():
+    c1, c2, c3 = st.columns([8, 5, 2], vertical_alignment="center")
 
     with c1:
         st.title("Auditi | Painel de Indicadores")
@@ -179,11 +235,15 @@ def header_bar() -> None:
             "Resumo mensal das áreas da empresa com visão gerencial e indicadores integrados ao banco de dados."
         )
 
+    with c2:
+        status_placeholder = st.empty()
+
     with c3:
         if st.button("🚪 Sair", use_container_width=True, key="btn_logout_top"):
             logout()
 
     st.markdown("---")
+    return status_placeholder
 
 
 # =========================================================
@@ -207,7 +267,7 @@ max-width:760px;">
 Olá {st.session_state["username"]},
 </div>
 
-<div style="font-size:20;color:#374151;margin-bottom:12px;">
+<div style="font-size:20px;color:#374151;margin-bottom:12px;">
 Aguarde enquanto executamos o <b>Auditi</b>.
 </div>
 
@@ -222,13 +282,13 @@ dos setores da empresa <b>{st.session_state["lk_grupo"]}</b>.
     st.markdown(html_msg, unsafe_allow_html=True)
 
     with st.spinner("Preparando painel..."):
-        time.sleep(15)
+        time.sleep(2)
 
     st.session_state["stage"] = "app"
     st.rerun()
 
 elif st.session_state["stage"] == "app":
-    header_bar()
+    status_placeholder = header_bar()
 
     import app
-    app.main()
+    app.main(status_placeholder)
