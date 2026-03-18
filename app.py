@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Optional, List
-
+import os
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -1194,6 +1194,9 @@ def main(status_placeholder):
     # =========================================================
     # SIDEBAR
     # =========================================================
+    if os.path.exists("Logo_ADXW.bmp"):
+        st.sidebar.image("Logo_ADXW.bmp", use_container_width=True)
+
     st.sidebar.title("Auditi")
     st.sidebar.caption("Painel executivo por setor")
 
