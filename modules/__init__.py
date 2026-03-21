@@ -16,3 +16,4 @@ from . import estrutura
 from . import reposicaoxmedio
 from . import meta
 from . import metaatingida
+from . import miniproducao
