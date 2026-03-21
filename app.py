@@ -52,6 +52,7 @@ def main(status_placeholder):
         meta,
         metaatingida,
         miniproducao,
+        prod_parada,
     )
 
     # =========================================================
@@ -815,6 +816,7 @@ def main(status_placeholder):
         ("Carregando metas...", meta.get_kpi),
         ("Carregando meta atingida...", metaatingida.get_kpi),
         ("Carregando mini produção...", miniproducao.get_kpi),
+        ("Carregando OFs paradas...", prod_parada.get_kpi),
     ]
 
     total_etapas = len(etapas_kpi)
@@ -909,6 +911,11 @@ def main(status_placeholder):
     kpi_miniproducao = miniproducao.get_kpi()
     etapa += 1
     atualizar_loading("Carregando mini produção...", etapa, total_etapas)
+
+    kpi_prod_parada = prod_parada.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando OFs paradas...", etapa, total_etapas)
+
     # =========================================================
     # ORGANIZAÇÃO POR SETOR
     # =========================================================
@@ -1034,6 +1041,18 @@ def main(status_placeholder):
                     f'Mês ant.: {formatar_numero(kpi_correcoes.get("valor_anterior", 0), "R$")}<br>'
                     f'{kpi_correcoes.get("qtd_ofs_mes", 0)} OFs | '
                     f'Último dia: {formatar_numero(kpi_correcoes.get("valor_ultimo_dia", 0), "R$")}'
+                )
+            ),
+            AreaIndicador(
+                nome=kpi_prod_parada["nome"],
+                valor=kpi_prod_parada["valor"],
+                valor_anterior=kpi_prod_parada["valor_anterior"],
+                unidade=kpi_prod_parada["unidade"],
+                cor=kpi_prod_parada["cor"],
+                extra=(
+                    f'> 5 dias: {int(kpi_prod_parada.get("qtd_mais_5", 0))}<br>'
+                    f'> 10 dias: {int(kpi_prod_parada.get("qtd_mais_10", 0))}<br>'
+                    f'> 15 dias: {int(kpi_prod_parada.get("qtd_mais_15", 0))}'
                 )
             ),
         ],
@@ -1419,7 +1438,27 @@ def main(status_placeholder):
         )
     else:
         st.info("Sem dados de metas para o ano atual.")
+    # =========================================================
+    # EXPORTAÇÃO - OFs PARADAS
+    # =========================================================
+    df_paradas = prod_parada.get_detalhe()
 
+    st.markdown('<div class="section-title">Exportação - OFs Paradas</div>', unsafe_allow_html=True)
+    st.caption("Baixe a base detalhada para validação das OFs identificadas como paradas.")
+
+    if not df_paradas.empty:
+        csv = prod_parada.preparar_csv_brasileiro(df_paradas)
+
+        st.download_button(
+            label="⬇️ Baixar CSV - OFs Paradas",
+            data=csv,
+            file_name="prod_parada_validacao.csv",
+            mime="text/csv",
+        )
+
+        st.dataframe(df_paradas, use_container_width=True, hide_index=True)
+    else:
+        st.info("Sem dados de OFs paradas para exportação.")
     # =========================================================
     # TABELA DETALHADA
     # =========================================================
@@ -1442,6 +1481,7 @@ def main(status_placeholder):
                 }
             )
 
+    st.dataframe(pd.DataFrame(linhas), use_container_width=True, hide_index=True)
 
 
 
