@@ -17,3 +17,4 @@ from . import reposicaoxmedio
 from . import meta
 from . import metaatingida
 from . import miniproducao
+from . import prod_parada
