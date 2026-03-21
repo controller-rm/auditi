@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional, List
 import os
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -50,6 +51,7 @@ def main(status_placeholder):
         reposicaoxmedio,
         meta,
         metaatingida,
+        miniproducao,
     )
 
     # =========================================================
@@ -267,7 +269,6 @@ def main(status_placeholder):
         resumo: str
         itens: List[DiagnosticoItem]
 
-
     # =========================================================
     # FUNÇÕES AUXILIARES
     # =========================================================
@@ -286,14 +287,12 @@ def main(status_placeholder):
             return f"{valor:.2f}%".replace(".", ",")
         return f"{valor:,.0f}".replace(",", ".")
 
-
     def delta_texto(delta):
         if delta is None:
             return ""
 
         seta = "▲" if delta >= 0 else "▼"
         return f"{seta} {delta:.2f}%"
-
 
     def classe_status(status: str) -> str:
         mapa = {
@@ -303,7 +302,6 @@ def main(status_placeholder):
         }
         return mapa.get(status, "diag-warn")
 
-
     def emoji_status(status: str) -> str:
         mapa = {
             "Saudável": "🟢",
@@ -311,7 +309,6 @@ def main(status_placeholder):
             "Crítico": "🔴",
         }
         return mapa.get(status, "🟡")
-
 
     def render_diagnostico_box(diag: DiagnosticoSetor):
         st.markdown(
@@ -338,7 +335,6 @@ def main(status_placeholder):
                 unsafe_allow_html=True,
             )
 
-
     def grafico_linha(df: pd.DataFrame, titulo: str) -> go.Figure:
         if df.empty:
             fig = go.Figure()
@@ -355,7 +351,6 @@ def main(status_placeholder):
             showlegend=False,
         )
         return fig
-
 
     def gerar_diagnosticos(
         kpi_faturamento: dict,
@@ -819,6 +814,7 @@ def main(status_placeholder):
         ("Carregando reposição x médio...", reposicaoxmedio.get_kpi),
         ("Carregando metas...", meta.get_kpi),
         ("Carregando meta atingida...", metaatingida.get_kpi),
+        ("Carregando mini produção...", miniproducao.get_kpi),
     ]
 
     total_etapas = len(etapas_kpi)
@@ -909,6 +905,10 @@ def main(status_placeholder):
     kpi_metaatingida = metaatingida.get_kpi()
     etapa += 1
     atualizar_loading("Carregando meta atingida...", etapa, total_etapas)
+
+    kpi_miniproducao = miniproducao.get_kpi()
+    etapa += 1
+    atualizar_loading("Carregando mini produção...", etapa, total_etapas)
     # =========================================================
     # ORGANIZAÇÃO POR SETOR
     # =========================================================
@@ -997,6 +997,20 @@ def main(status_placeholder):
                     f'{int(kpi_producao.get("volume_ultimo_dia", 0)):,} no último dia | '
                     f'{kpi_producao.get("data_ultimo_dia", "Sem produção")}'
                 ).replace(",", ".")
+            ),
+            AreaIndicador(
+                nome=kpi_miniproducao["nome"],
+                valor=kpi_miniproducao["valor"],
+                valor_anterior=kpi_miniproducao["valor_anterior"],
+                unidade=kpi_miniproducao["unidade"],
+                cor=kpi_miniproducao["cor"],
+                extra=(
+                    f'Qtde mês: {formatar_numero(kpi_miniproducao.get("qtde_mes_atual", 0), "")}<br>'
+                    f'Mês ant.: {int(kpi_miniproducao.get("qtd_mes_anterior", 0))} OFs | '
+                    f'Qtde.: {formatar_numero(kpi_miniproducao.get("qtde_mes_anterior", 0), "")}<br>'
+                    f'Ano: {int(kpi_miniproducao.get("qtd_acumulado_ano", 0))} OFs | '
+                    f'Qtde: {formatar_numero(kpi_miniproducao.get("qtde_acumulado_ano", 0), "")}'
+                )
             ),
             AreaIndicador(
                 nome=kpi_of_atrasadas["nome"],
@@ -1190,7 +1204,6 @@ def main(status_placeholder):
 
         return fig
 
-
     # =========================================================
     # SIDEBAR
     # =========================================================
@@ -1199,7 +1212,6 @@ def main(status_placeholder):
 
     st.sidebar.title("Auditi")
     st.sidebar.caption("Painel executivo por setor")
-
     # =========================================================
     # CABEÇALHO
     # =========================================================
@@ -1430,7 +1442,6 @@ def main(status_placeholder):
                 }
             )
 
-    st.dataframe(pd.DataFrame(linhas), use_container_width=True, hide_index=True)
 
 
 
