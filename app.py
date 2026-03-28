@@ -9,8 +9,156 @@ import plotly.express as px
 import plotly.graph_objects as go
 import time
 
+
 def main(status_placeholder):
     import streamlit as st
+
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import mm
+    from io import BytesIO
+
+    import re
+
+    def limpar_texto_para_pdf(texto):
+        if not texto:
+            return ""
+
+        texto = str(texto)
+        texto = re.sub(r"<br\s*/?>", "<br/>", texto, flags=re.IGNORECASE)
+        return texto
+    
+    def formatar_numero_br(valor, unidade=""):
+        try:
+            valor = float(valor or 0)
+        except Exception:
+            valor = 0.0
+
+        if unidade == "R$":
+            return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        elif unidade == "%":
+            return f"{valor:,.2f}%".replace(",", "X").replace(".", ",").replace("X", ".")
+        elif unidade == "dias":
+            return f"{valor:,.2f} dias".replace(",", "X").replace(".", ",").replace("X", ".")
+        else:
+            return f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+    def gerar_linhas_anotacao(qtd_linhas=3, largura=170 * mm):
+        dados = [[""] for _ in range(qtd_linhas)]
+        tabela = Table(dados, colWidths=[largura], rowHeights=[8 * mm] * qtd_linhas)
+        tabela.setStyle(TableStyle([
+            ("LINEBELOW", (0, 0), (-1, -1), 0.5, colors.grey),
+        ]))
+        return tabela
+
+
+    def gerar_pdf_setores(setores):
+        buffer = BytesIO()
+
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=A4,
+            rightMargin=10 * mm,
+            leftMargin=10 * mm,
+            topMargin=10 * mm,
+            bottomMargin=10 * mm,
+        )
+
+        styles = getSampleStyleSheet()
+
+        estilo_titulo = ParagraphStyle(
+            name="Titulo",
+            parent=styles["Title"],
+            fontName="Helvetica-Bold",
+            fontSize=16,
+            alignment=1,
+            textColor=colors.HexColor("#1F2937"),
+        )
+
+        estilo_setor = ParagraphStyle(
+            name="Setor",
+            fontName="Helvetica-Bold",
+            fontSize=12,
+            textColor=colors.white,
+            backColor=colors.HexColor("#1D4ED8"),
+            leftIndent=6,
+        )
+
+        estilo_card = ParagraphStyle(
+            name="Card",
+            fontName="Helvetica",
+            fontSize=8.5,
+            leading=11,
+        )
+
+        elementos = []
+
+        # Título
+        elementos.append(Paragraph("Auditi - Painel Gerencial por Setor", estilo_titulo))
+        elementos.append(Spacer(1, 8))
+
+        for nome_setor, indicadores in setores.items():
+
+            # Cabeçalho do setor
+            elementos.append(Paragraph(f"{nome_setor}", estilo_setor))
+            elementos.append(Spacer(1, 6))
+
+            # === CARDS ===
+            cards = []
+
+            for area in indicadores:
+                valor_atual = formatar_numero_br(area.valor, area.unidade)
+                valor_ant = formatar_numero_br(area.valor_anterior, area.unidade)
+
+                texto = f"""
+                <b>{area.nome}</b><br/>
+                Valor atual: {valor_atual}<br/>
+                Valor anterior: {valor_ant}<br/>
+                """
+
+                if area.extra:
+                    texto += f"<b>Detalhes:</b><br/>{limpar_texto_para_pdf(area.extra)}"
+
+                cards.append(Paragraph(texto, estilo_card))
+
+            # === DISTRIBUIR EM 3 COLUNAS ===
+            linhas = []
+            for i in range(0, len(cards), 3):
+                linha = cards[i:i+3]
+
+                # Completar linha se faltar colunas
+                while len(linha) < 3:
+                    linha.append("")
+
+                # adicionar coluna de anotação
+                linha.append(gerar_linhas_anotacao(4, largura=50 * mm))
+
+                linhas.append(linha)
+
+            tabela = Table(
+                linhas,
+                colWidths=[55 * mm, 55 * mm, 55 * mm, 40 * mm]
+            )
+
+            tabela.setStyle(TableStyle([
+                ("BOX", (0,0), (-2,-1), 0.5, colors.grey),
+                ("VALIGN", (0,0), (-1,-1), "TOP"),
+                ("LEFTPADDING", (0,0), (-1,-1), 6),
+                ("RIGHTPADDING", (0,0), (-1,-1), 6),
+                ("TOPPADDING", (0,0), (-1,-1), 6),
+                ("BOTTOMPADDING", (0,0), (-1,-1), 6),
+            ]))
+
+            elementos.append(tabela)
+            elementos.append(Spacer(1, 10))
+
+        doc.build(elementos)
+        buffer.seek(0)
+        return buffer
+
 
     def render_status_topo(mensagem: str, tempo: float = 0.0, concluido: bool = False):
         classe = "status-topo-ok" if concluido else "status-topo"
@@ -1163,6 +1311,16 @@ def main(status_placeholder):
             ),
         ],
     }
+####### PDFF
+    pdf_buffer = gerar_pdf_setores(setores)
+
+    st.download_button(
+        label="📄 Baixar PDF do Painel",
+        data=pdf_buffer,
+        file_name="painel_setores.pdf",
+        mime="application/pdf"
+    )
+
     tempo_total = time.perf_counter() - inicio_execucao
     render_status_topo("Painel carregado com sucesso.", tempo_total, True)
     st.session_state["loading_message"] = "Painel carregado com sucesso."
