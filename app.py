@@ -277,7 +277,11 @@ def main(status_placeholder):
                 color: #334155;
                 margin-bottom: 8px;
             }
-
+            .info-icon {
+                font-size: 12px;
+                margin-left: 6px;
+                cursor: help;
+            }
             .metric-value {
                 font-size: 1.9rem;
                 font-weight: 800;
@@ -391,6 +395,7 @@ def main(status_placeholder):
         unidade: str
         cor: str
         extra: Optional[str] = None
+        extra_obs: Optional[str] = None
 
         @property
         def delta_perc(self):
@@ -1137,6 +1142,7 @@ def main(status_placeholder):
                 valor_anterior=kpi_of_dispersao["valor_anterior"],
                 unidade=kpi_of_dispersao["unidade"],
                 cor=kpi_of_dispersao["cor"],
+                extra_obs=kpi_of_dispersao.get("extra_obs"), #  incluir observacao
                 extra=(
                     f'{kpi_of_dispersao.get("qtd_apontamentos", 0)} dispersões | '
                     f'{int(kpi_of_dispersao.get("qtde_produzida_total", 0)):,} produzida'
@@ -1148,6 +1154,7 @@ def main(status_placeholder):
                 valor_anterior=kpi_producao["valor_anterior"],
                 unidade=kpi_producao["unidade"],
                 cor=kpi_producao["cor"],
+                extra_obs=kpi_producao.get("extra_obs"), #  incluir observacao
                 extra=(
                     f'{int(kpi_producao.get("volume_ultimo_dia", 0)):,} no último dia | '
                     f'{kpi_producao.get("data_ultimo_dia", "Sem produção")}'
@@ -1159,6 +1166,7 @@ def main(status_placeholder):
                 valor_anterior=kpi_miniproducao["valor_anterior"],
                 unidade=kpi_miniproducao["unidade"],
                 cor=kpi_miniproducao["cor"],
+                extra_obs=kpi_miniproducao.get("extra_obs"), #  incluir observacao
                 extra=(
                     f'Qtde mês: {formatar_numero(kpi_miniproducao.get("qtde_mes_atual", 0), "")}<br>'
                     f'Mês ant.: {int(kpi_miniproducao.get("qtd_mes_anterior", 0))} OFs | '
@@ -1173,6 +1181,7 @@ def main(status_placeholder):
                 valor_anterior=kpi_of_atrasadas["valor_anterior"],
                 unidade=kpi_of_atrasadas["unidade"],
                 cor=kpi_of_atrasadas["cor"],
+                extra_obs=kpi_of_atrasadas.get("extra_obs"), #  incluir observacao
                 extra=(
                     f'2-5d: {kpi_of_atrasadas.get("faixa_2_5", 0)} | '
                     f'6-10d: {kpi_of_atrasadas.get("faixa_6_10", 0)} | '
@@ -1185,6 +1194,7 @@ def main(status_placeholder):
                 valor_anterior=kpi_correcoes["valor_anterior"],
                 unidade=kpi_correcoes["unidade"],
                 cor=kpi_correcoes["cor"],
+                extra_obs=kpi_correcoes.get("extra_obs"), #  incluir observacao
                 extra=(
                     f'Mês ant.: {formatar_numero(kpi_correcoes.get("valor_anterior", 0), "R$")}<br>'
                     f'{kpi_correcoes.get("qtd_ofs_mes", 0)} OFs | '
@@ -1197,6 +1207,7 @@ def main(status_placeholder):
                 valor_anterior=kpi_prod_parada["valor_anterior"],
                 unidade=kpi_prod_parada["unidade"],
                 cor=kpi_prod_parada["cor"],
+                extra_obs=kpi_prod_parada.get("extra_obs"), #  incluir observacao
                 extra=(
                     f'> 5 dias: {int(kpi_prod_parada.get("qtd_mais_5", 0))}<br>'
                     f'> 10 dias: {int(kpi_prod_parada.get("qtd_mais_10", 0))}<br>'
@@ -1421,7 +1432,7 @@ def main(status_placeholder):
     # INDICADORES POR SETOR EM COLUNAS
     # =========================================================
     st.markdown('<div class="section-title">Indicadores por setor</div>', unsafe_allow_html=True)
-
+    
     col1, col2, col3, col4, col5 = st.columns(5)
 
     colunas_setores = {
@@ -1437,16 +1448,22 @@ def main(status_placeholder):
             st.markdown(f'<div class="sector-header">{nome_setor}</div>', unsafe_allow_html=True)
 
             for area in indicadores:
+                info_html = ""
+                if area.extra_obs:
+                    info_html = f"<span class='info-icon' title=\"{area.extra_obs}\">ℹ️</span>"
+
+                extra_html = f"<div class='metric-extra'>{area.extra}</div>" if area.extra else "<div></div>"
+
                 st.markdown(
                     f"""
                     <div class="metric-card {area.cor}">
                         <div>
-                            <div class="metric-title">{area.nome}</div>
+                            <div class="metric-title">{area.nome} {info_html}</div>
                             <div class="metric-value">{formatar_numero(area.valor, area.unidade)}</div>
                         </div>
                         <div class="metric-footer">
                             <div class="metric-delta">{delta_texto(area.delta_perc)}</div>
-                            {"<div class='metric-extra'>" + area.extra + "</div>" if area.extra else "<div></div>"}
+                            {extra_html}
                         </div>
                     </div>
                     """,
@@ -1640,6 +1657,9 @@ def main(status_placeholder):
             )
 
     st.dataframe(pd.DataFrame(linhas), use_container_width=True, hide_index=True)
+
+
+
 
 
 
