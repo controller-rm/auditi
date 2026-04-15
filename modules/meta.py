@@ -79,19 +79,19 @@ def get_kpi():
             extra = "<br>".join(linhas)
 
         return {
-            "nome": "Meta por Vendedor",
+            "nome": "Meta por Vendedor Top 5",
             "valor": valor_atual,
             "valor_anterior": valor_anterior,
             "unidade": "R$",
             "cor": "card-blue",
             "extra": extra,
-            
+            "extra_obs": "Incluir informações sobre os valores do card."
         }
 
     except Exception as e:
         st.error(f"Erro no módulo Meta: {e}")
         return {
-            "nome": "Meta por Vendedor",
+            "nome": "Meta por Vendedor Top 5",
             "valor": 0,
             "valor_anterior": 0,
             "unidade": "R$",
