@@ -119,6 +119,7 @@ def get_kpi():
             "qtd_pedidos": qtd_pedidos,
             "qtd_pedidos_anterior": qtd_pedidos_anterior,
             "extra": extra,
+            "extra_obs": "Incluir informações sobre os valores do card."
         }
 
     except Exception as e:
@@ -132,6 +133,7 @@ def get_kpi():
             "qtd_pedidos": 0,
             "qtd_pedidos_anterior": 0,
             "extra": None,
+            "extra_obs": "Incluir informações sobre os valores do card."
         }
 
 
@@ -168,6 +170,7 @@ def get_kpi_prazo_medio_entrega():
             "qtd_ate_8": qtd_ate_8,
             "qtd_maior_8": qtd_maior_8,
             "qtd_pedidos_faturados": int(len(atual)),
+            "extra_obs": "Incluir informações sobre os valores do card."
             "extra": (
                 f"Até 2d: {qtd_ate_2} | "
                 f"Até 5d: {qtd_ate_5}<br>"
