@@ -186,6 +186,7 @@ def get_kpi():
             "unidade": "%",
             "cor": "card-orange" if perc_faltante > 0 else "card-green",
             "extra": extra,
+            "extra_obs": "Incluir informações sobre os valores do card.",
             "meta_mes": meta_mes,
             "realizado_mes": realizado_mes,
             "faltante_valor": faltante_valor,
