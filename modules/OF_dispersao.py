@@ -60,6 +60,7 @@ def get_kpi():
             "qtd_apontamentos": int(apont.iloc[0]["qtd_apontamentos"] or 0),
             "qtd_of_produto": int(apont.iloc[0]["qtd_of_produto"] or 0),
             "qtde_produzida_total": float(atual.iloc[0]["qtde_produzida_total"] or 0),
+            "extra_obs": "Estou considarando todos as OF que passam pela Dispersão"
         }
     except Exception as e:
         st.error(f"Erro no módulo OF Dispersão: {e}")
