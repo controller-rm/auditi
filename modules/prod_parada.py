@@ -5,22 +5,26 @@ from services.query_service import run_query
 
 SQL_PROD_PARADA_KPI = """
 WITH ordem_base AS (
-    SELECT
+    SELECT DISTINCT
         TRIM(ofa.nro_of) AS nro_of,
         SUBSTRING_INDEX(TRIM(ofa.produto), ' ', 1) AS cod_produto,
-        CONCAT(TRIM(ofa.nro_of), '|', SUBSTRING_INDEX(TRIM(ofa.produto), ' ', 1)) AS chave_of
+        CONCAT(
+            TRIM(ofa.nro_of), '|',
+            SUBSTRING_INDEX(TRIM(ofa.produto), ' ', 1)
+        ) AS chave_of
     FROM ORDEM_FABRIC ofa
     WHERE TRIM(ofa.nro_of) <> ''
       AND TRIM(COALESCE(ofa.status_of, '')) = 'A'
-    GROUP BY
-        TRIM(ofa.nro_of),
-        SUBSTRING_INDEX(TRIM(ofa.produto), ' ', 1)
+      AND COALESCE(ofa.origem, 0) NOT IN (997, 999)
 ),
 horas_base AS (
     SELECT
         TRIM(ht.nro_of) AS nro_of,
         SUBSTRING_INDEX(TRIM(ht.produto), ' ', 1) AS cod_produto,
-        CONCAT(TRIM(ht.nro_of), '|', SUBSTRING_INDEX(TRIM(ht.produto), ' ', 1)) AS chave_of,
+        CONCAT(
+            TRIM(ht.nro_of), '|',
+            SUBSTRING_INDEX(TRIM(ht.produto), ' ', 1)
+        ) AS chave_of,
         COALESCE(ht.seq_ap_of, 0) AS seq_ap_of,
         DATE(ht.data_abertura) AS data_abertura,
         DATE(ht.data_fechamento) AS data_fechamento,
@@ -33,8 +37,7 @@ horas_base AS (
     WHERE TRIM(ht.nro_of) <> ''
 ),
 base_filtrada AS (
-    SELECT
-        hb.*
+    SELECT hb.*
     FROM horas_base hb
     INNER JOIN ordem_base ob
         ON hb.chave_of = ob.chave_of
@@ -69,31 +72,34 @@ SELECT
     SUM(CASE WHEN dias_parada > 5 THEN 1 ELSE 0 END) AS qtd_mais_5,
     SUM(CASE WHEN dias_parada > 10 THEN 1 ELSE 0 END) AS qtd_mais_10,
     SUM(CASE WHEN dias_parada > 15 THEN 1 ELSE 0 END) AS qtd_mais_15
-FROM paradas_base
+FROM paradas_base;
 """
 
 
 SQL_PROD_PARADA_DETALHE = """
 WITH ordem_base AS (
-    SELECT
+    SELECT DISTINCT
         TRIM(ofa.nro_of) AS nro_of,
         TRIM(ofa.produto) AS produto_ordem,
         SUBSTRING_INDEX(TRIM(ofa.produto), ' ', 1) AS cod_produto,
-        CONCAT(TRIM(ofa.nro_of), '|', SUBSTRING_INDEX(TRIM(ofa.produto), ' ', 1)) AS chave_of
+        CONCAT(
+            TRIM(ofa.nro_of), '|',
+            SUBSTRING_INDEX(TRIM(ofa.produto), ' ', 1)
+        ) AS chave_of
     FROM ORDEM_FABRIC ofa
     WHERE TRIM(ofa.nro_of) <> ''
       AND TRIM(COALESCE(ofa.status_of, '')) = 'A'
-    GROUP BY
-        TRIM(ofa.nro_of),
-        TRIM(ofa.produto),
-        SUBSTRING_INDEX(TRIM(ofa.produto), ' ', 1)
+      AND COALESCE(ofa.origem, 0) NOT IN (997, 999)
 ),
 horas_base AS (
     SELECT
         TRIM(ht.nro_of) AS nro_of,
         TRIM(ht.produto) AS produto_hora,
         SUBSTRING_INDEX(TRIM(ht.produto), ' ', 1) AS cod_produto,
-        CONCAT(TRIM(ht.nro_of), '|', SUBSTRING_INDEX(TRIM(ht.produto), ' ', 1)) AS chave_of,
+        CONCAT(
+            TRIM(ht.nro_of), '|',
+            SUBSTRING_INDEX(TRIM(ht.produto), ' ', 1)
+        ) AS chave_of,
         COALESCE(ht.seq_ap_of, 0) AS seq_ap_of,
         DATE(ht.data_abertura) AS data_abertura,
         DATE(ht.data_fechamento) AS data_fechamento,
@@ -178,7 +184,31 @@ SELECT
     END AS faixa_parada
 FROM paradas_base
 WHERE dias_parada > 5
-ORDER BY dias_parada DESC, nro_of
+ORDER BY dias_parada DESC, nro_of;
+)
+SELECT
+    nro_of,
+    cod_produto,
+    produto_ordem,
+    produto_hora,
+    chave_of,
+    seq_ap_of,
+    data_abertura,
+    data_fechamento,
+    equipamento,
+    desc_equipamento,
+    cod_operador,
+    desc_operador,
+    horas_of,
+    dias_parada,
+    CASE
+        WHEN dias_parada > 15 THEN '15+ dias'
+        WHEN dias_parada > 10 THEN '11 a 15 dias'
+        WHEN dias_parada > 5 THEN '6 a 10 dias'
+    END AS faixa_parada
+FROM paradas_base
+WHERE dias_parada > 5
+ORDER BY dias_parada DESC, nro_of;
 """
 
 
@@ -231,6 +261,7 @@ def get_kpi():
             "qtd_mais_5": qtd_mais_5,
             "qtd_mais_10": qtd_mais_10,
             "qtd_mais_15": qtd_mais_15,
+            "extra_obs": "Desconsiderando Ofs 997 e 999"
         }
 
     except Exception as e:
