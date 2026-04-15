@@ -146,6 +146,7 @@ def get_kpi():
             "unidade": "R$",
             "cor": "card-green",
             "extra": extra,
+            "extra_obs": "Incluir informações sobre os valores do card."
         }
 
     except Exception as e:
@@ -157,6 +158,7 @@ def get_kpi():
             "unidade": "R$",
             "cor": "card-green",
             "extra": None,
+            "extra_obs": "Incluir informações sobre os valores do card."
         }
 
 
