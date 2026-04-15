@@ -1080,6 +1080,7 @@ def main(status_placeholder):
             valor_anterior=kpi_metaatingida["valor_anterior"],
             unidade=kpi_metaatingida["unidade"],
             cor=kpi_metaatingida["cor"],
+            extra_obs=kpi_metaatingida.get("extra_obs"), #  incluir observacao
             extra=kpi_metaatingida["extra"]
         ),
             AreaIndicador(
@@ -1088,6 +1089,7 @@ def main(status_placeholder):
                 valor_anterior=kpi_faturamento["valor_anterior"],
                 unidade=kpi_faturamento["unidade"],
                 cor=kpi_faturamento["cor"],
+                extra_obs=kpi_faturamento.get("extra_obs"), #  incluir observacao
                 extra=kpi_faturamento.get("extra")
             ),
             AreaIndicador(
@@ -1096,20 +1098,26 @@ def main(status_placeholder):
                 valor_anterior=kpi_margem["valor_anterior"],
                 unidade=kpi_margem["unidade"],
                 cor=kpi_margem["cor"],
+                extra_obs=kpi_margem.get("extra_obs"), #  incluir observacao
                 extra=(
                     f'Mês: {formatar_numero(kpi_margem.get("total_margem_mes", 0), "R$")} | '
                     f'Mês ant.: {formatar_numero(kpi_margem.get("total_margem_mes_anterior", 0), "R$")}<br>'
+                    
+                    f'Período mês ant.: {kpi_margem.get("periodo_mes_anterior", "")}<br>'
+                    
                     f'Último dia: {formatar_numero(kpi_margem.get("total_margem_ultimo_dia", 0), "R$")} | '
                     f'{kpi_margem.get("data_ultimo_dia", "")}'
                 )
             ),
             AreaIndicador(**kpi_pedidos),
+            
             AreaIndicador(
                 nome=kpi_pedidos_mes["nome"],
                 valor=kpi_pedidos_mes["valor"],
                 valor_anterior=kpi_pedidos_mes["valor_anterior"],
                 unidade=kpi_pedidos_mes["unidade"],
                 cor=kpi_pedidos_mes["cor"],
+                extra_obs=kpi_pedidos_mes.get("extra_obs"), #  incluir observacao
                 extra=f'{kpi_pedidos_mes.get("qtd_pedidos", 0)} pedidos no mês'
             ),
             AreaIndicador(
@@ -1118,6 +1126,7 @@ def main(status_placeholder):
                 valor_anterior=kpi_prazo_entrega["valor_anterior"],
                 unidade=kpi_prazo_entrega["unidade"],
                 cor=kpi_prazo_entrega["cor"],
+                extra_obs=kpi_prazo_entrega.get("extra_obs"), #  incluir observacao
                 extra=(
                     f'Até 2d: {kpi_prazo_entrega.get("qtd_ate_2", 0)} | '
                     f'Até 5d: {kpi_prazo_entrega.get("qtd_ate_5", 0)}<br>'
@@ -1131,6 +1140,7 @@ def main(status_placeholder):
                 valor_anterior=kpi_meta["valor_anterior"],
                 unidade=kpi_meta["unidade"],
                 cor=kpi_meta["cor"],
+                extra_obs=kpi_meta.get("extra_obs"), #  incluir observacao
                 extra=kpi_meta["extra"]
             ),
         ],
@@ -1657,9 +1667,3 @@ def main(status_placeholder):
             )
 
     st.dataframe(pd.DataFrame(linhas), use_container_width=True, hide_index=True)
-
-
-
-
-
-
