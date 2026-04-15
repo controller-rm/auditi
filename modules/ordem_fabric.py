@@ -38,6 +38,10 @@ def get_kpi():
         WHERE ordf.status_of = 'F'
         AND ordf.data_fechamento IS NOT NULL
         AND TRIM(IFNULL(p.tipo_material, '')) IN ('FO', 'PI')
+        AND NOT (
+        (p.GP_codigo_grupo = 500 AND p.SGP_codigo_subgrupo = '003')
+        OR p.GP_codigo_grupo IN (800, 801)
+    )
     """
 
     df = pd.read_sql(query, conn)
@@ -45,7 +49,7 @@ def get_kpi():
 
     if df.empty:
         return {
-            "nome": "Produção",
+            "nome": "Produção Kg", #alterado
             "valor": 0,
             "valor_anterior": 0,
             "unidade": "un",
@@ -88,13 +92,14 @@ def get_kpi():
         data_ultimo_dia = pd.to_datetime(ultimo_dia).strftime("%d/%m/%Y")
 
     return {
-        "nome": "Produção",
+        "nome": "Produção Kg",
         "valor": volume_mes,
         "valor_anterior": volume_mes_anterior,
         "unidade": "un",
         "cor": "card-green",
         "volume_ultimo_dia": volume_ultimo_dia,
         "data_ultimo_dia": data_ultimo_dia,
+        "extra_obs": "A Qtde em Kg produzida desconsidera Gr/Sugr 500/003 e Gr 800 e 801."
     }
 
 def get_kpi_of_abertas_997():
@@ -196,6 +201,7 @@ def get_kpi_of_abertas_997():
         "qtd_status_a_mes": qtd_status_a_mes,
         "vlr_lb_mes": vlr_lb_mes,
         "vlr_cam_mes": vlr_cam_mes,
+        "extra_obs": "A Qtde em Kg produzida desconsidera Gr/Sugr 500/003 e Gr 800 e 801."
     }
 
 def get_kpi_of_atrasadas():
@@ -291,4 +297,5 @@ def get_kpi_of_atrasadas():
         "faixa_2_5": faixa_2_5,
         "faixa_6_10": faixa_6_10,
         "faixa_acima_10": faixa_acima_10,
+        "extra_obs": "As Ofs atrasada não estão desconsiderando 997 ou 999"
     }
