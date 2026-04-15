@@ -1667,3 +1667,6 @@ def main(status_placeholder):
             )
 
     st.dataframe(pd.DataFrame(linhas), use_container_width=True, hide_index=True)
+
+
+
