@@ -73,6 +73,7 @@ def get_kpi():
             "total_margem_mes_anterior": total_margem_mes_anterior,
             "total_margem_ultimo_dia": total_margem_ultimo_dia,
             "data_ultimo_dia": data_ultimo_dia_formatada,
+            "extra_obs": "Esse Card Apresenta o Valor da Margem acumulada mês e valores da Margem"
         }
 
     except Exception as e:
