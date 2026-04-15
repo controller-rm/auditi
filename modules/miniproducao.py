@@ -171,6 +171,7 @@ def get_kpi():
             "qtde_mes_atual": qtde_mes_atual,
             "qtde_mes_anterior": qtde_mes_anterior,
             "qtde_acumulado_ano": qtde_acumulado_ano,
+            "extra_obs": "Considerando apenas apontamento MINI PRODUCAO"
         }
 
     except Exception as e:
