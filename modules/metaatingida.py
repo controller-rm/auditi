@@ -147,6 +147,7 @@ def get_kpi():
                 "unidade": "%",
                 "cor": "card-orange",
                 "extra": "Sem dados de meta.",
+                "extra_obs": "Incluir informações sobre os valores do card."
             }
 
         df["meta_mes"] = pd.to_numeric(df["meta_mes"], errors="coerce").fillna(0.0)
@@ -201,6 +202,7 @@ def get_kpi():
             "unidade": "%",
             "cor": "card-orange",
             "extra": None,
+            "extra_obs": "Incluir informações sobre os valores do card."
         }
 
 
