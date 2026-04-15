@@ -110,4 +110,5 @@ def get_kpi():
         "valor_ultimo_dia": valor_ultimo_dia,
         "data_ultimo_dia": data_ultimo_dia,
         "qtd_ofs_mes": qtd_ofs_mes,
+        "extra_obs": "Estou considerando as requisições com historico 30,22 e 999"
     }
