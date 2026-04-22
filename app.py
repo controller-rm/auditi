@@ -8,7 +8,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import time
-
+from datetime import datetime
 
 def main(status_placeholder):
     import streamlit as st
@@ -57,7 +57,9 @@ def main(status_placeholder):
 
     def gerar_pdf_setores(setores):
         buffer = BytesIO()
-
+        
+        data_emissao = datetime.now().strftime("%d/%m/%Y %H:%M")
+        
         doc = SimpleDocTemplate(
             buffer,
             pagesize=A4,
@@ -99,7 +101,20 @@ def main(status_placeholder):
         # Título
         elementos.append(Paragraph("Auditi - Painel Gerencial por Setor", estilo_titulo))
         elementos.append(Spacer(1, 8))
-
+       
+        texto_emissao = f"Gerado por Controladoria RM - Emitido em: {data_emissao} "
+        
+        estilo_info = ParagraphStyle(
+            name="Info",
+            fontName="Helvetica",
+            fontSize=8,
+            alignment=2,  # direita
+            textColor=colors.grey,
+        )
+        
+        elementos.append(Paragraph(texto_emissao, estilo_info))
+        elementos.append(Spacer(1, 8))
+        
         for nome_setor, indicadores in setores.items():
 
             # Cabeçalho do setor
